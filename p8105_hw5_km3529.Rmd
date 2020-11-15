@@ -27,6 +27,10 @@ scale_fill_discrete = scale_fill_viridis_d
 ```
 
 
+## Problem 1
+
+Describe the raw data. Create a city_state variable (e.g. “Baltimore, MD”) and then summarize within cities to obtain the total number of homicides and the number of unsolved homicides (those for which the disposition is “Closed without arrest” or “Open/No arrest”).
+
 ```{r}
 homicide_df = 
   read_csv("data/homicide.csv") %>% 
@@ -38,10 +42,15 @@ homicide_df =
       disposition == "Closed by arrest" ~ "solved"
     ) ) %>% 
   select(city_state, resolved) %>% 
-  filter(city_state != "Tulse_AL")
-  
+  filter(city_state != "Tulsa_AL")
 ```
 
+DESCRIBE RAW DATA
+  - Tulsla_AL had 1 obs, so removed s
+
+
+
+Summarize within cities to obtain the total number of homicides and the number of unsolved homicides (those for which the disposition is “Closed without arrest” or “Open/No arrest”).
 ```{r}
 aggregate_df = 
   homicide_df %>% 
@@ -52,15 +61,17 @@ aggregate_df =
   )
 ```
 
-Can I do prop test for a single city 
+
+For the city of Baltimore, MD, use the prop.test function to estimate the proportion of homicides that are unsolved; save the output of prop.test as an R object, apply the broom::tidy to this object and pull the estimated proportion and confidence intervals from the resulting tidy dataframe.
+
 ```{r}
 prop.test(
   aggregate_df %>% filter(city_state ==  "Baltimore_MD") %>% pull(hom_unsolved), 
-  aggregate_df %>% filter(city_state ==  "Baltimore_MD") %>% pull(hom_total)) %>% 
+  aggregate_df %>% filter(city_state ==  "Baltimore_MD") %>% pull(hom_total)) %>%
   broom::tidy()
 ```
 
-try to iterate... 
+Now run prop.test for each of the cities in your dataset, and extract both the proportion of unsolved homicides and the confidence interval for each. Do this within a “tidy” pipeline, making use of purrr::map, purrr::map2, list columns and unnest as necessary to create a tidy dataframe with estimated proportions and CIs for each city. 
 ```{r}
 results_df = 
   aggregate_df %>% 
@@ -73,36 +84,18 @@ results_df =
 ```
 
 
+Create a plot that shows the estimates and CIs for each city – check out geom_errorbar for a way to add error bars based on the upper and lower limits. Organize cities according to the proportion of unsolved homicides.
+
 ```{r}
 results_df %>% 
-  
+  mutate(city_state = fct_reorder(city_state, estimate)) %>% 
   ggplot(aes(x = city_state,  y = estimate)) + 
-  geom_point()
+  geom_point() + 
+  geom_errorbar(aes(ymin = conf.low, ymax = conf.high)) +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
 ```
 
 
-
-
-```{r}
-city_prop_test = function(df) {
-  
-  n_unsolved ... 
-  n_total... 
-}
-  
-  homicide_df = 
-  read_csv("data/homicide.csv") %>% 
-  mutate(
-    city_state = str_c(city, state, sep = "_"), 
-    resolved = case_when(
-      disposition == "Closed without arrest" ~ "unsolved", 
-      disposition == "Open/No arrest" ~ "unsolved", 
-      disposition == "Closed by arrest" ~ "solved"
-    ) ) %>% 
-  select(city_state, resolved) %>% 
-  filter(city_state != "Tulse_AL") %>% 
-  nest(data = resolved)
-```
 
 
 
