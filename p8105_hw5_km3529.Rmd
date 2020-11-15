@@ -125,15 +125,20 @@ tidy
 
 
 ```{r}
-tidy_path_df = 
+lda_df = 
   path_df %>% 
-  separate(path, into = c('folder', 'lda', 'file'), sep = "/") %>%
-  separate(file, into = c('arm', 'id'), sep = "_") %>% 
+  separate(path, into = c('folder', 'lda', 'id'), sep = "/") %>% 
+  select(-folder, -lda) %>% 
   mutate(id = str_replace(id, '.csv' , '')) %>% 
-  select(-lda) %>% 
-  unnest(col = data)
-  
+  separate(id, into = c('arm', 'id'), sep = "_") %>% 
+  unnest(col = data) %>% 
+  pivot_longer(
+    week_1:week_8, 
+    names_to = "week",  
+    values_to = "observation"
+  )
 ```
+
 
 
 
