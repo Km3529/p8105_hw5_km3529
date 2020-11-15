@@ -96,7 +96,49 @@ results_df %>%
 ```
 
 
+## Problem 2
 
+Create a tidy dataframe containing data from all participants 
+  - subject ID
+  - arm
+  - observations over time:
+
+1) Start with a dataframe containing all file names (the list.files function will help
+Iterate over file names  
+
+2) read in data for each subject using purrr::map and saving the result as a new variable in the dataframe) 
+
+
+read in data using map 
+save result as new variable in dataframe 
+
+```{r}
+path_df = 
+  tibble(
+    path = list.files("data/lda")
+  ) %>% 
+  mutate(
+      path = str_c("data/lda/", path), 
+      data = map(path, read_csv )) 
+      
+
+
+
+read_csv(path_df$path[[1]])
+```
+
+then mutate for 
+
+```{r}
+
+```
+
+
+
+2) Tidy the results 
+
+Tidy the result; manipulate file names to include control arm and subject ID, make sure weekly observations are “tidy”, and do any other tidying that’s necessary
+Make a spaghetti plot showing observations on each subject over time, and comment on differences between groups.
 
 
 
