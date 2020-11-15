@@ -33,7 +33,7 @@ Describe the raw data. Create a city_state variable (e.g. “Baltimore, MD”) a
 
 ```{r}
 homicide_df = 
-  read_csv("data/homicide.csv") %>% 
+  read_csv("data/homicide/homicide.csv") %>% 
   mutate(
     city_state = str_c(city, state, sep = "_"), 
     resolved = case_when(
@@ -119,34 +119,66 @@ path_df =
 
 * Tidy the result; manipulate file names to include control arm and subject ID, make sure weekly observations are “tidy”, and do any other tidying that’s necessary
 
-mutate
-string operations 
-tidy 
-
-
 ```{r}
 lda_df = 
   path_df %>% 
   separate(path, into = c('folder', 'lda', 'id'), sep = "/") %>% 
   select(-folder, -lda) %>% 
-  mutate(id = str_replace(id, '.csv' , '')) %>% 
+  mutate(
+    id = str_replace(id, '.csv' , '')) %>% 
   separate(id, into = c('arm', 'id'), sep = "_") %>% 
   unnest(col = data) %>% 
   pivot_longer(
     week_1:week_8, 
     names_to = "week",  
-    values_to = "observation"
-  )
+    values_to = "observation", 
+    names_prefix = "week_"
+  ) %>% 
+  mutate(
+    week = as.numeric(week))
+```
+
+Make a spaghetti plot showing observations on each subject over time, and comment on differences between groups.
+
+```{r}
+# doesn't work 
+lda_df %>% 
+  group_by(arm, id, week) %>% 
+  summarize(observation) %>% 
+  ggplot(aes(x = week, y = observation, color = arm)) + 
+  geom_line() +
+  labs(x = 'Week', 
+       y = 'Observation Value', 
+       title = 'Observations Over Time')
+
+#trial 
+lda_df %>% 
+  group_by(arm, id) %>% 
+  summarize(observation, week) %>% 
+  ggplot(aes(x = week, y = observation, color = arm)) + 
+  geom_line() +
+  labs(x = 'Week', 
+       y = 'Observation Value', 
+       title = 'Observations Over Time')
+
+
+
+lda_df %>% 
+  ggplot(aes(x = week, y = observation, group = interaction(arm, id), color = arm)) + 
+  geom_line() +
+    labs(x = 'Week', 
+      y = 'Observation Value', 
+      title = 'Observations Over Time', 
+      color = 'Treatment Group') 
+ 
 ```
 
 
 
+COMMENT
 
-2) Tidy the results 
 
-Tidy the result; manipulate file names to include control arm and subject ID, make sure weekly observations are “tidy”, and do any other tidying that’s necessary
-Make a spaghetti plot showing observations on each subject over time, and comment on differences between groups.
-
+## Problem 3
 
 
 
