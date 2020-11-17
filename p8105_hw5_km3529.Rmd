@@ -212,14 +212,14 @@ sim_ttest(0)
 
 Set mu = 0 and generate 5000 datasets 
 ```{r}
-sim_results = 
+sim_results0 = 
   rerun(50, sim_ttest(0)) %>% 
   bind_rows() 
 ```
 
 Repeat for mu = {1, 2, 3, 4, 5, 6} 
 ```{r}
-sim_results2 = 
+sim_results = 
   tibble(
     mu = c(0, 1, 2, 3, 4, 5, 6)) %>% 
   mutate(
@@ -230,36 +230,57 @@ sim_results2 =
   
 ```
 
+Make a plot showing the proportion of times the null was rejected (the power of the test) on the y axis and the true value of μ
+ on the x axis. Describe the association between effect size and power.
+ 
+ 
+proprotion of times the null was rejected (power) 
 
- 
- 
- 
- 
- 
- 
- 
- 
- 
+Y = proportion of times the null was rejected 
+X = true value of mu
  
 ```{r}
-
-sim_ttest = function(samp_size, mu, sigma) {
+power = 
+  sim_results %>% 
+  mutate(decision = case_when(
+    p.value < 0.05 ~ "rejected", 
+    p.value >= 0.05 ~ "fail to reject"
+  )) %>% 
+  group_by(mu) %>% 
+  summarize(
+    total_decision = n(), 
+    total_reject = sum(decision == "rejected")) %>% 
+  mutate(
+    prop_tests = map2(.x = total_reject, .y = total_decision, ~prop.test(x = .x, n = .y)), 
+    tidy_tests = map(.x = prop_tests, ~broom::tidy(.x))) %>% 
+  select(-prop_tests) %>% 
+  unnest(tidy_tests) %>% 
+  select(mu, estimate, conf.low, conf.high) %>% 
+  rename(power = estimate) 
   
-  sim_data = 
-    tibble(
-      x = rnorm(n = samp_size, mean = mu, sd = sigma))
-
-  sim_data %>% 
-    t.test(mu = 0, alternative = "two.sided", paired = FALSE, conf.level = 0.95) %>% 
-    broom::tidy() %>% 
-  select(estimate, p.value)
-
-} 
-
-sim_ttest(30, 0, 6)
+power_plot
+  power %>% 
+  ggplot(aes(x = mu, y = power)) + 
+    geom_point() + 
+    geom_smooth(se = FALSE) + 
+    labs(
+      x = "True Value of Mu",
+      y = "Power", 
+      title = "Effect Size and Power")
 
 ```
+ 
 
+Make a plot showing the average estimate of μ̂
+ on the y axis and the true value of μ
+ on the x axis. Make a second plot (or overlay on the first) the average estimate of μ̂
+ only in samples for which the null was rejected on the y axis and the true value of μ
+ on the x axis. Is the sample average of μ̂
+ across tests for which the null is rejected approximately equal to the true value of μ
+? Why or why not?
+
+ 
+ 
   
 
 
