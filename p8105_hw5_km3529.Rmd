@@ -267,19 +267,61 @@ power_plot
       x = "True Value of Mu",
       y = "Power", 
       title = "Effect Size and Power")
-
+power_plot
 ```
  
 
 Make a plot showing the average estimate of μ̂
  on the y axis and the true value of μ
- on the x axis. Make a second plot (or overlay on the first) the average estimate of μ̂
- only in samples for which the null was rejected on the y axis and the true value of μ
- on the x axis. Is the sample average of μ̂
- across tests for which the null is rejected approximately equal to the true value of μ
-? Why or why not?
+ on the x axis. 
+ 
+```{r}
+# Plot 1
+plot_1 =
+  sim_results %>% 
+  group_by(mu) %>% 
+  summarize(
+    average_estimate = mean(estimate) ) %>% 
+  ggplot(aes(x = mu, y = average_estimate)) + 
+  geom_point() + 
+  geom_line() + 
+  labs(
+    x = "Mu",
+    y = "Average Estimate", 
+    title = "Average Estimate for Mu When Null is Rejected")
+
+
+# 
+# x = true value of mu 
+# y axis = average estimate of mu 
+
+rejected = 
+  sim_results %>% 
+  mutate(decision = case_when(
+    p.value < 0.05 ~ "rejected", 
+    p.value >= 0.05 ~ "fail to reject")) %>% 
+  filter(decision == "rejected") %>% 
+   group_by(mu) %>% 
+  summarize(
+    average_estimate = mean(estimate)) %>% 
+  ggplot(aes(x = mu, y = average_estimate)) + 
+  geom_point() + 
+  geom_line() + 
+  labs(
+      x = "Mu",
+      y = "Average Estimate", 
+      title = "Average Estimate for Mu When Null is Rejected")
+
+### FACET 
+```
 
  
+ 1) clena code 
+ 2) fix number 2
+ 3) add comments 
+
+
+
  
   
 
