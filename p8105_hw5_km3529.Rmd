@@ -208,9 +208,38 @@ sim_ttest = function(mu){
 sim_ttest(6)
 sim_ttest(0)
 
-
 ```
 
+Set mu = 0 and generate 5000 datasets 
+```{r}
+sim_results = 
+  rerun(50, sim_ttest(0)) %>% 
+  bind_rows() 
+```
+
+Repeat for mu = {1, 2, 3, 4, 5, 6} 
+```{r}
+sim_results2 = 
+  tibble(
+    mu = c(0, 1, 2, 3, 4, 5, 6)) %>% 
+  mutate(
+    output_lists = map(.x = mu, ~rerun(5000, sim_ttest(mu = .x))), 
+    estimate_df = map(output_lists, bind_rows)) %>% 
+    unnest(estimate_df) %>% 
+    select(-output_lists)
+  
+```
+
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
  
 ```{r}
 
@@ -232,10 +261,6 @@ sim_ttest(30, 0, 6)
 ```
 
   
-
-
-
-
 
 
 
