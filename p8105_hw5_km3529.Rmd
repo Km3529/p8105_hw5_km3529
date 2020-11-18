@@ -5,7 +5,7 @@ date: "11/10/2020"
 output: github_document
 ---
 
-```{r}
+```{r include = FALSE}
 library(tidyverse)
 library(patchwork)
 
