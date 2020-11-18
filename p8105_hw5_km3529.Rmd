@@ -2,11 +2,12 @@
 title: "p8105_hw5_km3529"
 author: "Karina Myers"
 date: "11/10/2020"
-output: html_document
+output: github_document
 ---
 
 ```{r}
 library(tidyverse)
+library(patchwork)
 
 knitr::opts_chunk$set(
   fig.width = 6,
@@ -23,13 +24,17 @@ options(
 
 scale_colour_discrete = scale_colour_viridis_d
 scale_fill_discrete = scale_fill_viridis_d
+
+set.seed(1)
 ```
 
 
 ## Problem 1
 
-Describe the raw data. Create a city_state variable (e.g. “Baltimore, MD”) and then summarize within cities to obtain the total number of homicides and the number of unsolved homicides (those for which the disposition is “Closed without arrest” or “Open/No arrest”).
+This data is from a project done by the Washington Post on homicides in U.S. cities. The project mapped and analyzed data to identify homicides that most often led to an arrest and those that did not. The raw dataset contains information on homicides in 50 large U.S. cities. The dataset contains the reported date, the location, and victim information. It also includes information on case status including whether it is open or closed, whether than was an arrest, and whether it was resolved. It contains 52,179 homicides. 
 
+
+Import and create a city_state variable (e.g. “Baltimore, MD”) 
 ```{r}
 homicide_df = 
   read_csv("data/homicide/homicide.csv") %>% 
@@ -43,11 +48,6 @@ homicide_df =
   select(city_state, resolved) %>% 
   filter(city_state != "Tulsa_AL")
 ```
-
-DESCRIBE RAW DATA
-  - Tulsla_AL had 1 obs, so removed s
-
-
 
 Summarize within cities to obtain the total number of homicides and the number of unsolved homicides (those for which the disposition is “Closed without arrest” or “Open/No arrest”).
 ```{r}
@@ -99,11 +99,10 @@ results_df %>%
 
 This zip file contains data from a longitudinal study that included a control arm and an experimental arm. Data for each participant is included in a separate file, and file names include the subject ID and arm.
 
-* Create a tidy dataframe containing data from all participants, including the subject ID, arm, and observations over time:
+Create a tidy dataframe containing data from all participants, including the subject ID, arm, and observations over time:
 
-* Start with a dataframe containing all file names; the list.files function will help
+Start with a dataframe containing all file names; the list.files function will help. 
 Iterate over file names and read in data for each subject using purrr::map and saving the result as a new variable in the dataframe
-
 
 ```{r}
 path_df = 
@@ -116,8 +115,7 @@ path_df =
 ```
 
 
-* Tidy the result; manipulate file names to include control arm and subject ID, make sure weekly observations are “tidy”, and do any other tidying that’s necessary
-
+Tidy the result; manipulate file names to include control arm and subject ID, make sure weekly observations are “tidy”, and do any other tidying that’s necessary
 ```{r}
 lda_df = 
   path_df %>% 
@@ -135,11 +133,9 @@ lda_df =
   ) %>% 
   mutate(
     week = as.numeric(week))
-
 ```
 
 Make a spaghetti plot showing observations on each subject over time, and comment on differences between groups.
-
 ```{r}
 lda_df %>% 
   ggplot(aes(x = week, y = observation, group = interaction(arm, id), color = arm)) + 
@@ -151,13 +147,18 @@ lda_df %>%
  
 ```
 
-COMMENT
+From the spaghetti plot, participants in the control arm have lower observation values compared with the experimental group. This trend emerges around week 2 and the two groups' observations diverge more as time goes on. Additionally, the observations in the control group remains fairly constant throughout time while there is a slight increase for those in the experimental group as time goes on. 
 
 
 ## Problem 3
 
 
-1) create a function that shows t test output 
+When designing an experiment or analysis, a common question is whether it is likely that a true effect will be detected – put differently, whether a false null hypothesis will be rejected. The probability that a false null hypothesis is rejected is referred to as power, and it depends on several factors, including: the sample size; the effect size; and the error variance. In this problem, you will conduct a simulation to explore power in a one-sample t-test.
+
+First set the following design elements:
+
+Fix n=30
+Fix σ=5
 
 
 ```{r}
@@ -174,19 +175,20 @@ sim_ttest = function(mu){
   
 }
 
-sim_ttest(6)
-sim_ttest(0)
-
 ```
 
-Set mu = 0 and generate 5000 datasets 
+Set μ=0
+
+Generate 5000 datasets from the model x∼Normal[μ,σ]
+For each dataset, save μ̂ and the p-value arising from a test of H:μ=0 using α=0.05
+
 ```{r}
-sim_results0 = 
+sim_results1 = 
   rerun(50, sim_ttest(0)) %>% 
   bind_rows() 
 ```
 
-Repeat for mu = {1, 2, 3, 4, 5, 6} 
+Repeat the above for μ={1,2,3,4,5,6}, and complete the following:
 ```{r}
 sim_results = 
   tibble(
@@ -196,17 +198,10 @@ sim_results =
     estimate_df = map(output_lists, bind_rows)) %>% 
     unnest(estimate_df) %>% 
     select(-output_lists)
-  
 ```
 
-Make a plot showing the proportion of times the null was rejected (the power of the test) on the y axis and the true value of μ
- on the x axis. Describe the association between effect size and power.
- 
- 
-proprotion of times the null was rejected (power) 
 
-Y = proportion of times the null was rejected 
-X = true value of mu
+Make a plot showing the proportion of times the null was rejected (the power of the test) on the y axis and the true value of μ on the x axis. Describe the association between effect size and power.
  
 ```{r}
 power = 
@@ -227,7 +222,7 @@ power =
   select(mu, estimate, conf.low, conf.high) %>% 
   rename(power = estimate) 
   
-power_plot
+power_plot = 
   power %>% 
   ggplot(aes(x = mu, y = power)) + 
     geom_point() + 
@@ -236,17 +231,15 @@ power_plot
       x = "True Value of Mu",
       y = "Power", 
       title = "Effect Size and Power")
-power_plot
 ```
- 
+This plot is logarithmic and shows that as the true value of mu increases, the power also increases. This is in line with statistical knowledge that power increases as effect size increases. However, as mu approaches 4-6, the increase in power tapers off close to 1. 
 
-Make a plot showing the average estimate of μ̂
- on the y axis and the true value of μ
- on the x axis. 
+
+Make a plot showing the average estimate of μ̂ on the y axis and the true value of μ on the x axis. 
+Make a second plot (or overlay on the first) the average estimate of μ̂ only in samples for which the null was rejected on the y axis and the true value of μ on the x axis. 
  
 ```{r}
-# Plot 1
-plot_1 =
+mu_p =
   sim_results %>% 
   group_by(mu) %>% 
   summarize(
@@ -257,12 +250,8 @@ plot_1 =
   labs(
     x = "Mu",
     y = "Average Estimate", 
-    title = "Average Estimate for Mu When Null is Rejected")
+    title = "Average Estimate of Mu ")
 
-
-# 
-# x = true value of mu 
-# y axis = average estimate of mu 
 
 rejected = 
   sim_results %>% 
@@ -279,35 +268,15 @@ rejected =
   labs(
       x = "Mu",
       y = "Average Estimate", 
-      title = "Average Estimate for Mu When Null is Rejected")
+      title = "Average Estimate of Mu When Null is Rejected")
 
-### FACET 
+mu_p + rejected
 ```
 
- 
- 1) clena code 
- 2) fix number 2
- 3) add comments 
+Is the sample average of μ̂ across tests for which the null is rejected approximately equal to the true value of μ? Why or why not?
 
-
+The average sample for which the null is rejected is not approximately equal to the true value of mu is not equal across all mu values. For example, when mu is 1 and 2, the average estimate when the null is rejected is above the true mu. However, as mu increases, the average estimate becomes closer to the mu and we see a more linear trend started when mu is equal to 3. 
 
  
-  
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
