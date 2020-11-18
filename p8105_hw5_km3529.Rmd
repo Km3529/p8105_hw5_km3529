@@ -31,7 +31,7 @@ set.seed(1)
 
 ## Problem 1
 
-This data is from a project done by the Washington Post on homicides in U.S. cities. The project mapped and analyzed data to identify homicides that most often led to an arrest and those that did not. The raw dataset contains information on homicides in 50 large U.S. cities. The dataset contains the reported date, the location, and victim information. It also includes information on case status including whether it is open or closed, whether than was an arrest, and whether it was resolved. It contains 52,179 homicides. 
+This data is from a project done by the Washington Post on homicides in U.S. cities. The project mapped and analyzed data to identify homicides that most often led to an arrest and those that did not. The raw dataset contains information on homicides in 50 large U.S. cities. The dataset contains the reported date, the location, and victim information. It also includes information on case status including whether it is open or closed, whether than was an arrest, and whether it was resolved. It contains 52,179 homicides. When importing the data, two categories ("closed without arrest" and "open/no arrest") in disposition were collapsed into "unsolved."
 
 
 Import and create a city_state variable (e.g. “Baltimore, MD”) 
@@ -213,24 +213,16 @@ power =
   group_by(mu) %>% 
   summarize(
     total_decision = n(), 
-    total_reject = sum(decision == "rejected")) %>% 
-  mutate(
-    prop_tests = map2(.x = total_reject, .y = total_decision, ~prop.test(x = .x, n = .y)), 
-    tidy_tests = map(.x = prop_tests, ~broom::tidy(.x))) %>% 
-  select(-prop_tests) %>% 
-  unnest(tidy_tests) %>% 
-  select(mu, estimate, conf.low, conf.high) %>% 
-  rename(power = estimate) 
-  
-power_plot = 
-  power %>% 
-  ggplot(aes(x = mu, y = power)) + 
+    total_reject = sum(decision == "rejected"),
+    prop_reject = (total_reject/total_decision)) %>% 
+  ggplot(aes(x = mu, y = prop_reject)) + 
     geom_point() + 
     geom_smooth(se = FALSE) + 
     labs(
       x = "True Value of Mu",
       y = "Power", 
       title = "Effect Size and Power")
+  
 ```
 This plot is logarithmic and shows that as the true value of mu increases, the power also increases. This is in line with statistical knowledge that power increases as effect size increases. However, as mu approaches 4-6, the increase in power tapers off close to 1. 
 
